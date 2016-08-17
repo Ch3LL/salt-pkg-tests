@@ -49,6 +49,7 @@
 
 {# Set minion ID used for master<->local minion testing #}
 {% set minion_id = '{0}'.format(grains.get('id')) %}
+{% set master_ip = pillar.get('master_ip', '')%}
 
 {# Smoke test the presence of these utilities #}
 {% set utils = ['salt', 'salt-api', 'salt-call', 'salt-cloud', 'salt-cp', 'salt-key', 'salt-master', 'salt-minion', 'salt-proxy', 'salt-run', 'salt-ssh', 'salt-syndic', 'salt-unity', 'spm'] %}
