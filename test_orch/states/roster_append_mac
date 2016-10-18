@@ -1,0 +1,6 @@
+qapkgtest-mac-parallels-test:
+    host: {{ salt['pillar.get']('mac_parallels_host', '') }}
+    user: {{ salt['pillar.get']('mac_parallels_user', '') }}
+    passwd: {{ salt['pillar.get']('mac_parallels_passwd', '') }}
+    sudo: True
+    tty: True

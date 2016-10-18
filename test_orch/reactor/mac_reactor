@@ -1,0 +1,27 @@
+{% set salt_version = salt['pillar.get']('salt_version', '') %}
+{% set orch_master = salt['pillar.get']('orch_master', '') %}
+{% set staging = salt['pillar.get']('dev', '') %}
+{% set pkg_name = 'salt-' + salt_version + '-x86_64.pkg' %}
+{% set osx_repo = 'https://repo.saltstack.com/{0}/osx/'.format(staging) %}
+{% set pkg_url = osx_repo + pkg_name %}
+{% set pkg_file_path = '/tmp/salt-' + pkg_name %}
+{% set minion_ip_query = salt.cmd.run('salt-ssh \* parallels.exec pkg-el-capitan-{0} "ipconfig getifaddr en0" runas=parallels'.format(salt_version)) %}
+{% set minion_ip = minion_ip_query|replace("qapkgtest-mac-parallels-test:\n    ", "") %}
+{% set mac_minion_passwd = salt['pillar.get']('mac:mac_minion_passwd', '') %}
+{% set mac_minion_user = salt['pillar.get']('mac:mac_minion_user', '') %}
+
+mac_minion_get_pkg:
+  local.cmd.run:
+    - tgt: {{ orch_master }}
+    - arg:
+      - sshpass -p {{ mac_minion_passwd }} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "{{ mac_minion_user}}@{{ minion_ip }}" 'wget -O /tmp/{{ pkg_name }} {{ pkg_url }}'
+mac_minion_install_salt:
+  local.cmd.run:
+    - tgt: {{ orch_master }}
+    - arg:
+      - sshpass -p {{ mac_minion_passwd }} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "{{ mac_minion_user}}@{{ minion_ip }}" 'sudo installer -pkg /tmp/{{ pkg_name }} -target /'
+configure_mac_minion:
+  local.cmd.run:
+    - tgt: {{ orch_master }}
+    - arg:
+      - sshpass -p {{ mac_minion_passwd }} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "{{ mac_minion_user}}@{{ minion_ip }}" 'sudo salt-config -i mac_minion_{{ salt_version }} -m {{ '{{' }} data['ip_address'] {{ '}}' }}'
